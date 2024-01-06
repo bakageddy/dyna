@@ -1,8 +1,8 @@
 mod index;
 mod utils;
-use std::{collections::HashMap, process::exit};
+use std::process::exit;
 
-use crate::utils::*;
+use crate::{utils::*, index::Tokenizer};
 
 fn main() {
     let args: Vec<String> = std::env::args().into_iter().collect();
@@ -15,17 +15,10 @@ fn main() {
         }
     }
 
-    let mut index: HashMap<String, i32> = HashMap::new();
-    let t = index::Tokenizer::new("books/glAttachShader.xhtml");
-    for token in t {
-        match index.get_mut(&token) {
-            Some(count) => {
-                *count += 1;
-            },
-            None => {
-                index.insert(token, 1);
-            }
-        }
+    for i in Tokenizer::new("./test/xenos.txt") {
+        println!("{i}")
     }
-    println!("{index:#?}")
+
+    // let index = utils::index_document("./test");
+    // println!("{index:?}");
 }

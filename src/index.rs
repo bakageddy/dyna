@@ -12,11 +12,13 @@ pub struct Tokenizer {
     current: u8,
 }
 
+#[derive(Debug)]
 pub struct DirIndex {
     pub dirname: String,
     pub indices: Vec<DocumentIndex>,
 }
 
+#[derive(Debug)]
 pub struct DocumentIndex {
     pub filename: String,
     pub index: HashMap<String, i32>,
@@ -25,8 +27,19 @@ pub struct DocumentIndex {
 
 impl Tokenizer {
     pub fn new(file: &str) -> Self {
-        let content = fs::read_to_string(file).ok().unwrap_or(String::new());
-        let current = content.as_bytes()[0];
+        let content: String;
+        let current: u8;
+        match fs::read_to_string(file) {
+            Ok(t) => {
+                content = t;
+                current = content.as_bytes()[0];
+            },
+            Err(e) => {
+                content = String::new();
+                current = 0;
+                println!("File: {file} {e:#?}");
+            }
+        }
         Self {
             name: file.to_string(),
             tokens: Vec::new(),
@@ -37,21 +50,20 @@ impl Tokenizer {
     }
 
     pub fn peek(&self) -> u8 {
-        if self.cursor + 1 < self.content.len() {
+        if self.cursor + 1 <= self.content.len() {
             return self.content[self.cursor + 1];
+        } else {
+            0
         }
-        return 0
     }
 
     pub fn consume(&mut self) {
-        if self.cursor + 1 < self.content.len() {
-            self.cursor += 1;
-            self.current = self.content[self.cursor]
-        }
+        self.cursor += 1;
+        self.current = self.content[self.cursor]
     }
 
     pub fn skip_whitespace(&mut self) {
-        while self.current.is_ascii_whitespace() {
+        while self.current.is_ascii_whitespace() && self.cursor + 1 < self.content.len() {
             self.consume();
         }
     }
@@ -62,7 +74,7 @@ impl Iterator for Tokenizer {
 
     fn next(&mut self) -> Option<Self::Item> {
         let mut tok = String::new();
-        while self.peek() != 0 {
+        while self.cursor < self.content.len() {
             self.skip_whitespace();
 
             if self.peek().is_ascii_punctuation() || self.current.is_ascii_punctuation() {
@@ -76,6 +88,7 @@ impl Iterator for Tokenizer {
                 self.consume();
                 return Some(tok);
             }
+
             tok.push(self.current as char);
             self.consume();
         }
