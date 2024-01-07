@@ -31,7 +31,7 @@ impl Tokenizer {
         let current: Option<u8>;
         match fs::read_to_string(file) {
             Ok(t) => {
-                content = t.trim_end().trim_start().to_string();
+                content = t;
                 current = content.as_bytes().get(0).and_then(|s| Some(*s));
             },
             Err(e) => {
@@ -81,7 +81,6 @@ impl Iterator for Tokenizer {
         let mut tok = String::new();
         self.skip_whitespace();
         while let Some(c) = self.current {
-
             if let Some(next) = self.peek(None) {
                 if next.is_ascii_whitespace() {
                     tok.push(c as char);
