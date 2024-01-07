@@ -11,12 +11,12 @@ fn main() {
         match save_to_file(&index, "./test.index") {
             Ok(_) => {
                 println!("Saved to file!");
-                return;
             }
             Err(e) => {
                 eprintln!("Failed to save to file: {e}");
-                return;
             }
         }
+        let foo = search_term("Eisenhorn Patience".to_string(), &index);
+        println!("{foo:?}");
     } 
 }
