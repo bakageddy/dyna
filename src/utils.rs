@@ -12,10 +12,10 @@ use clap::Parser;
 pub struct Args {
     // Directory to index
     #[arg(long)]
-    pub index: Option<String>,
+    pub dir: Option<String>,
     // Name of the file to save
     #[arg(long)]
-    pub save: Option<String>,
+    pub index: Option<String>,
     // Term(s) to search
     #[arg(long)]
     pub search: Option<String>,

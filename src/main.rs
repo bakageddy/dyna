@@ -8,7 +8,7 @@ use crate::utils::*;
 
 fn main() {
     let args = Args::parse();
-    if let (Some(dir), Some(save_loc)) = (args.index, &args.save) {
+    if let (Some(dir), Some(save_loc)) = (args.dir, &args.index) {
         if let Ok(index) = index_dir(dir.as_str()) {
             match save_to_file(&index, save_loc.as_str()) {
                 Ok(_) => {
@@ -21,7 +21,7 @@ fn main() {
         }
     }
 
-    if let (Some(term), Some(index_location)) = (args.search, &args.save) {
+    if let (Some(term), Some(index_location)) = (args.search, &args.index) {
         if let Some(index) = load_index(index_location.as_str()) {
             let result = search_term(term, &index);
             println!("{result:?}");
