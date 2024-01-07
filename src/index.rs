@@ -1,9 +1,10 @@
+use serde::{Serialize, Deserialize};
 use std::fs;
 use std::collections::HashMap;
 
 type Token = String;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Tokenizer {
     pub name: String,
     pub content: Vec<u8>,
@@ -12,13 +13,13 @@ pub struct Tokenizer {
     current: Option<u8>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DirIndex {
     pub dirname: String,
     pub indices: Vec<DocumentIndex>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DocumentIndex {
     pub filename: String,
     pub index: HashMap<String, i32>,
@@ -78,8 +79,10 @@ impl Iterator for Tokenizer {
     type Item = Token;
 
     fn next(&mut self) -> Option<Self::Item> {
+
         let mut tok = String::new();
         self.skip_whitespace();
+
         while let Some(c) = self.current {
             if let Some(next) = self.peek(None) {
                 if next.is_ascii_whitespace() {

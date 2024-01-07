@@ -1,13 +1,20 @@
 use crate::index::{DirIndex, DocumentIndex, Tokenizer};
 use std::{
     collections::HashMap,
-    io,
-    path::{Path, PathBuf},
+    io::{self, BufWriter},
+    path::{Path, PathBuf}, fs,
 };
 
 pub fn usage() {
     println!("      --help                Print this information");
     println!("      --index [dir]         Index the provided dir");
+}
+
+pub fn save_to_file(index: &DirIndex, file: &str) -> io::Result<()> {
+    let f = fs::File::create(file)?;
+    let w = BufWriter::new(f);
+    serde_json::to_writer(w, index)?;
+    Ok(())
 }
 
 pub fn index_file(filename: &str) -> DocumentIndex {
@@ -29,7 +36,7 @@ pub fn index_file(filename: &str) -> DocumentIndex {
     }
 }
 
-pub fn index_document(dir_name: &str) -> io::Result<DirIndex> {
+pub fn index_dir(dir_name: &str) -> io::Result<DirIndex> {
     let dir = Path::new(dir_name).to_path_buf();
     let mut indices = Vec::new();
     if dir.exists() && dir.is_dir() {
@@ -39,6 +46,7 @@ pub fn index_document(dir_name: &str) -> io::Result<DirIndex> {
             indices.push(file_index);
         }
     }
+
     Ok(DirIndex {
         dirname: dir_name.to_string(),
         indices,
