@@ -11,6 +11,4 @@ $ ./target/{release,debug}/dyna --save file_to_save --search "Search Term"
 
 # Thanks to
 
-[Tsoding](https://github.com/tsoding/seroost)
-
-for inspiring this project
+[Tsoding](https://github.com/tsoding/seroost) for inspiring this project
