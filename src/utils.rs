@@ -1,20 +1,24 @@
 use crate::index::{DirIndex, DocumentIndex, Tokenizer};
 use std::{
     collections::{HashMap, HashSet},
-    io::{self, BufWriter},
-    path::{Path, PathBuf}, fs,
+    fs,
+    io::{self, BufReader, BufWriter},
+    path::{Path, PathBuf},
 };
 
 use clap::Parser;
 
-#[derive(Parser)]
+#[derive(Parser, Debug)]
 pub struct Args {
-    pub index: String,
-}
-
-pub fn usage() {
-    println!("      --help                Print this information");
-    println!("      --index [dir]         Index the provided dir");
+    // Directory to index
+    #[arg(long)]
+    pub index: Option<String>,
+    // Name of the file to save
+    #[arg(long)]
+    pub save: Option<String>,
+    // Term(s) to search
+    #[arg(long)]
+    pub search: Option<String>,
 }
 
 pub fn save_to_file(index: &DirIndex, file: &str) -> io::Result<()> {
@@ -22,6 +26,19 @@ pub fn save_to_file(index: &DirIndex, file: &str) -> io::Result<()> {
     let w = BufWriter::new(f);
     serde_json::to_writer(w, index)?;
     Ok(())
+}
+
+pub fn load_index(index_location: &str) -> Option<DirIndex> {
+    if let Ok(f) = fs::File::open(index_location) {
+        let buf = BufReader::new(f);
+        if let Ok(result) = serde_json::from_reader(buf) {
+            Some(result)
+        } else {
+            None
+        }
+    } else {
+        None
+    }
 }
 
 pub fn index_file(filename: &str) -> io::Result<DocumentIndex> {
@@ -56,7 +73,11 @@ pub fn index_dir(dir_name: &str) -> io::Result<DirIndex> {
         }
     }
 
-    Ok(DirIndex::new(dir_name.to_string(), indices, std::time::SystemTime::now()))
+    Ok(DirIndex::new(
+        dir_name.to_string(),
+        indices,
+        std::time::SystemTime::now(),
+    ))
 }
 
 pub fn search_term(term: String, index: &DirIndex) -> HashSet<&String> {
@@ -70,7 +91,6 @@ pub fn search_term(term: String, index: &DirIndex) -> HashSet<&String> {
     }
     occurences
 }
-
 
 pub fn get_all_file_paths(dir: PathBuf) -> io::Result<Vec<PathBuf>> {
     let mut paths = Vec::new();
