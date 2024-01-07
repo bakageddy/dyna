@@ -1,4 +1,5 @@
 mod index;
+mod stemmer;
 mod utils;
 
 use clap::Parser;
@@ -17,7 +18,7 @@ fn main() {
                     eprintln!("Failed to save to file: {e}");
                 }
             }
-        } 
+        }
     }
 
     if let (Some(term), Some(index_location)) = (args.search, &args.save) {

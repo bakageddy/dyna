@@ -1,4 +1,4 @@
-use crate::index::{DirIndex, DocumentIndex, Tokenizer};
+use crate::{index::{DirIndex, DocumentIndex, Tokenizer}, stemmer::stem_this};
 use std::{
     collections::{HashMap, HashSet},
     fs,
@@ -19,6 +19,9 @@ pub struct Args {
     // Term(s) to search
     #[arg(long)]
     pub search: Option<String>,
+
+    // #[arg(long)]
+    // pub stem: Option<bool>,
 }
 
 pub fn save_to_file(index: &DirIndex, file: &str) -> io::Result<()> {
@@ -50,7 +53,7 @@ pub fn index_file(filename: &str) -> io::Result<DocumentIndex> {
                 *count += 1;
             }
             None => {
-                index.insert(token.to_uppercase(), 1);
+                index.insert(token.to_lowercase(), 1);
             }
         }
     }
@@ -84,7 +87,7 @@ pub fn search_term(term: String, index: &DirIndex) -> HashSet<&String> {
     let mut occurences = HashSet::new();
     for entry in &index.indices {
         for i in term.split_whitespace() {
-            if entry.index.contains_key(&i.to_uppercase()) {
+            if entry.index.contains_key(&stem_this(i.to_lowercase())) {
                 occurences.insert(&entry.filename);
             }
         }
