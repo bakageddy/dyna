@@ -5,6 +5,13 @@ use std::{
     path::{Path, PathBuf}, fs,
 };
 
+use clap::Parser;
+
+#[derive(Parser)]
+pub struct Args {
+    pub index: String,
+}
+
 pub fn usage() {
     println!("      --help                Print this information");
     println!("      --index [dir]         Index the provided dir");
@@ -17,9 +24,9 @@ pub fn save_to_file(index: &DirIndex, file: &str) -> io::Result<()> {
     Ok(())
 }
 
-pub fn index_file(filename: &str) -> DocumentIndex {
+pub fn index_file(filename: &str) -> io::Result<DocumentIndex> {
     let mut index = HashMap::new();
-    let lexer = Tokenizer::new(filename);
+    let lexer = Tokenizer::new(filename)?;
     for token in lexer {
         match index.get_mut(&token) {
             Some(count) => {
@@ -30,10 +37,10 @@ pub fn index_file(filename: &str) -> DocumentIndex {
             }
         }
     }
-    DocumentIndex {
+    Ok(DocumentIndex {
         filename: String::from(filename),
         index,
-    }
+    })
 }
 
 pub fn index_dir(dir_name: &str) -> io::Result<DirIndex> {
@@ -43,14 +50,13 @@ pub fn index_dir(dir_name: &str) -> io::Result<DirIndex> {
         let paths = get_all_file_paths(dir)?;
         for i in paths {
             let file_index = index_file(i.to_str().unwrap_or(""));
-            indices.push(file_index);
+            if let Ok(file_index) = file_index {
+                indices.push(file_index);
+            }
         }
     }
 
-    Ok(DirIndex {
-        dirname: dir_name.to_string(),
-        indices,
-    })
+    Ok(DirIndex::new(dir_name.to_string(), indices, std::time::SystemTime::now()))
 }
 
 pub fn get_all_file_paths(dir: PathBuf) -> io::Result<Vec<PathBuf>> {

@@ -1,6 +1,7 @@
 use serde::{Serialize, Deserialize};
-use std::fs;
+use std::{fs, io};
 use std::collections::HashMap;
+use std::io::{BufReader, Read};
 
 type Token = String;
 
@@ -17,6 +18,17 @@ pub struct Tokenizer {
 pub struct DirIndex {
     pub dirname: String,
     pub indices: Vec<DocumentIndex>,
+    index_time: std::time::SystemTime,
+}
+
+impl DirIndex {
+    pub fn new(dirname: String, indices: Vec<DocumentIndex>, index_time: std::time::SystemTime) -> Self {
+        Self {
+            dirname,
+            indices,
+            index_time,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -27,27 +39,18 @@ pub struct DocumentIndex {
 
 
 impl Tokenizer {
-    pub fn new(file: &str) -> Self {
-        let content: String;
-        let current: Option<u8>;
-        match fs::read_to_string(file) {
-            Ok(t) => {
-                content = t;
-                current = content.as_bytes().get(0).and_then(|s| Some(*s));
-            },
-            Err(e) => {
-                content = String::new();
-                current = None;
-                println!("File: {file} {e:#?}");
-            }
-        }
-        Self {
+    pub fn new(file: &str) -> io::Result<Self> {
+        let f = fs::File::open(file)?;
+        let mut content = Vec::new();
+        let _ = BufReader::new(f).read_to_end(&mut content);
+        let current = content.get(0).and_then(|s| Some(*s));
+        Ok(Self {
             name: file.to_string(),
-            tokens: Vec::new(),
-            content: content.as_bytes().to_owned(),
-            cursor: 0,
+            content,
             current,
-        }
+            cursor: 0,
+            tokens: Vec::new(),
+        })
     }
 
     pub fn peek(&self, ahead: Option<usize>) -> Option<u8> {
