@@ -9,7 +9,7 @@ pub struct Tokenizer {
     pub content: Vec<u8>,
     pub tokens: Vec<Token>,
     cursor: usize,
-    current: u8,
+    current: Option<u8>,
 }
 
 #[derive(Debug)]
@@ -28,15 +28,15 @@ pub struct DocumentIndex {
 impl Tokenizer {
     pub fn new(file: &str) -> Self {
         let content: String;
-        let current: u8;
+        let current: Option<u8>;
         match fs::read_to_string(file) {
             Ok(t) => {
-                content = t;
-                current = content.as_bytes()[0];
+                content = t.trim_end().trim_start().to_string();
+                current = content.as_bytes().get(0).and_then(|s| Some(*s));
             },
             Err(e) => {
                 content = String::new();
-                current = 0;
+                current = None;
                 println!("File: {file} {e:#?}");
             }
         }
@@ -49,22 +49,27 @@ impl Tokenizer {
         }
     }
 
-    pub fn peek(&self) -> u8 {
-        if self.cursor + 1 <= self.content.len() {
-            return self.content[self.cursor + 1];
+    pub fn peek(&self, ahead: Option<usize>) -> Option<u8> {
+        let ahead = ahead.unwrap_or(1);
+        if self.cursor + ahead > self.content.len() {
+            return None;
         } else {
-            0
+            return self.content.get(self.cursor + ahead).and_then(|x| Some(*x));
         }
     }
 
     pub fn consume(&mut self) {
+        self.current = self.peek(None);
         self.cursor += 1;
-        self.current = self.content[self.cursor]
     }
 
     pub fn skip_whitespace(&mut self) {
-        while self.current.is_ascii_whitespace() && self.cursor + 1 < self.content.len() {
-            self.consume();
+        while let Some(c) = self.current {
+            if c.is_ascii_whitespace() {
+                self.consume();
+            } else {
+                return;
+            }
         }
     }
 }
@@ -74,22 +79,23 @@ impl Iterator for Tokenizer {
 
     fn next(&mut self) -> Option<Self::Item> {
         let mut tok = String::new();
-        while self.cursor < self.content.len() {
-            self.skip_whitespace();
+        self.skip_whitespace();
+        while let Some(c) = self.current {
 
-            if self.peek().is_ascii_punctuation() || self.current.is_ascii_punctuation() {
-                tok.push(self.current as char);
-                self.consume();
-                return Some(tok);
+            if let Some(next) = self.peek(None) {
+                if next.is_ascii_whitespace() {
+                    tok.push(c as char);
+                    self.consume();
+                    return Some(tok);
+                }
+                if next.is_ascii_punctuation() || c.is_ascii_punctuation() {
+                    tok.push(c as char);
+                    self.consume();
+                    return Some(tok);
+                }
             }
 
-            if self.peek().is_ascii_whitespace() {
-                tok.push(self.current as char);
-                self.consume();
-                return Some(tok);
-            }
-
-            tok.push(self.current as char);
+            tok.push(c as char);
             self.consume();
         }
         None
