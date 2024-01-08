@@ -1,6 +1,6 @@
-use crate::{index::{DirIndex, DocumentIndex, Tokenizer}, stemmer::stem_this};
+use crate::index::{DirIndex, DocumentIndex, Tokenizer};
 use std::{
-    collections::{HashMap, HashSet},
+    collections::HashMap,
     fs,
     io::{self, BufReader, BufWriter},
     path::{Path, PathBuf},
@@ -19,7 +19,6 @@ pub struct Args {
     // Term(s) to search
     #[arg(long)]
     pub search: Option<String>,
-
     // #[arg(long)]
     // pub stem: Option<bool>,
 }
@@ -45,20 +44,23 @@ pub fn load_index(index_location: &str) -> Option<DirIndex> {
 }
 
 pub fn index_file(filename: &str) -> io::Result<DocumentIndex> {
+    let mut tf = HashMap::new();
     let mut index = HashMap::new();
     let lexer = Tokenizer::new(filename)?;
-    for token in lexer {
-        match index.get_mut(&token) {
-            Some(count) => {
-                *count += 1;
-            }
-            None => {
-                index.insert(token.to_lowercase(), 1);
-            }
-        }
+    let tokens: Vec<String> = lexer.into_iter().collect();
+    let n = tokens.len();
+
+    for token in tokens {
+        index.entry(token).and_modify(|c| *c += 1).or_insert(1);
     }
+
+    for (token, count) in &index {
+        tf.insert(token.clone(), (*count as f32) / (n as f32));
+    }
+
     Ok(DocumentIndex {
         filename: String::from(filename),
+        tf,
         index,
     })
 }
@@ -83,13 +85,21 @@ pub fn index_dir(dir_name: &str) -> io::Result<DirIndex> {
     ))
 }
 
-pub fn search_term(term: String, index: &DirIndex) -> HashSet<&String> {
-    let mut occurences = HashSet::new();
+pub fn search_term(term: String, index: &DirIndex) -> HashMap<&String, f32> {
+    let mut occurences = HashMap::new();
     for entry in &index.indices {
         for i in term.split_whitespace() {
-            if entry.index.contains_key(&stem_this(i.to_lowercase())) {
-                occurences.insert(&entry.filename);
+            if entry.index.contains_key(i) {
+                let tf = entry.tf[i];
+                let df = index.df[i];
+                let score = tf * df;
+                occurences.entry(&entry.filename).and_modify(|v| *v += score).or_insert(score);
             }
+
+            // No stemming for now, maybe later when I figure out lemmatization
+            // if entry.tf.contains_key(&stem_this(i.to_lowercase())) {
+            //     occurences.insert(&entry.filename);
+            // }
         }
     }
     occurences

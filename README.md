@@ -11,10 +11,11 @@ $ ./target/{release,debug}/dyna --save file_to_save --search "Search Term"
 
 # TODO
 
-1. Implement td-idf algorithm
+1. Implement tf-idf algorithm
 2. Search Text over pdf(s), epub, docx
 3. Make a gui for searching docs in browser
 4. Implement image object search
+5. Lemmatization of input
 
 # Thanks to
 
