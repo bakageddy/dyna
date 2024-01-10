@@ -3,6 +3,11 @@ use std::collections::HashMap;
 use std::io::{BufReader, Read};
 use std::{fs, io};
 
+trait Lexer: Iterator {
+    type Token;
+    fn next_token(&mut self) -> Option<Self::Token>;
+}
+
 type Token = String;
 
 #[derive(Debug, Serialize, Deserialize)]

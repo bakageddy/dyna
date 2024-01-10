@@ -111,6 +111,11 @@ pub fn get_all_file_paths(dir: PathBuf) -> io::Result<Vec<PathBuf>> {
     for entry in entries {
         match entry {
             Ok(entry) => {
+                // Skip indexing hidden files
+                if entry.path().starts_with(".") {
+                    continue;
+                }
+
                 if entry.path().is_dir() {
                     paths.extend(get_all_file_paths(entry.path())?);
                 } else if entry.path().is_file() {
