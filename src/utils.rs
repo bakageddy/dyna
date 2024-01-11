@@ -1,8 +1,11 @@
-use crate::{index::{DirIndex, DocumentIndex, Tokenizer}, pdf::PDF};
+use crate::{
+    index::{DirIndex, DocumentIndex, Tokenizer, TextFile},
+    pdf::PDF,
+};
 use std::{
     collections::HashMap,
     fs,
-    io::{self, BufReader, BufWriter, ErrorKind, Error},
+    io::{self, BufReader, BufWriter, Error, ErrorKind},
     path::{Path, PathBuf},
 };
 
@@ -48,12 +51,17 @@ pub fn index_file(filename: PathBuf) -> io::Result<DocumentIndex> {
     let mut index = HashMap::new();
     let lexer;
     let path = filename.clone();
-    if filename.ends_with(".pdf") {
-        let mut pdf = PDF {path: filename};
+
+    if filename.extension().unwrap_or("".as_ref()).eq("pdf") {
+        let mut pdf = PDF { path: filename };
         lexer = Tokenizer::file(&mut pdf).ok();
+    } else if filename.extension().unwrap_or("".as_ref()).eq("txt"){
+        let mut txt = TextFile { path: filename };
+        lexer = Tokenizer::file(&mut txt).ok();
     } else {
-        lexer = Tokenizer::new(filename.to_str().expect("Should not panic!")).ok();
+        return Err(Error::from(ErrorKind::InvalidInput));
     }
+
     if let Some(lexer) = lexer {
         let tokens: Vec<String> = lexer.into_iter().collect();
         let n = tokens.len();
@@ -104,13 +112,11 @@ pub fn search_term(term: String, index: &DirIndex) -> HashMap<&String, f32> {
                 let tf = entry.tf[i];
                 let df = index.df[i];
                 let score = tf * df;
-                occurences.entry(&entry.filename).and_modify(|v| *v += score).or_insert(score);
+                occurences
+                    .entry(&entry.filename)
+                    .and_modify(|v| *v += score)
+                    .or_insert(score);
             }
-
-            // No stemming for now, maybe later when I figure out lemmatization
-            // if entry.tf.contains_key(&stem_this(i.to_lowercase())) {
-            //     occurences.insert(&entry.filename);
-            // }
         }
     }
     occurences
