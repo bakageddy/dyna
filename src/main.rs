@@ -3,8 +3,6 @@ mod stemmer;
 mod utils;
 mod pdf;
 
-use std::path::PathBuf;
-
 use clap::Parser;
 
 use crate::utils::*;

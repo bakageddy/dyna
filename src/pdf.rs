@@ -1,6 +1,7 @@
-use poppler::PopplerDocument;
 use std::path::PathBuf;
 use crate::index::IntoText;
+
+use mupdf::{document::Document, page::Page};
 
 pub struct PDF {
     pub path: PathBuf,
@@ -8,25 +9,20 @@ pub struct PDF {
 
 impl PDF {
     pub fn get_all_text(&self) -> Result<String, ()> {
-        let doc = PopplerDocument::new_from_file(&self.path, "").map_err(|e| {
-            eprintln!(
-                "Failed to load pdf file: {} because: {e}",
-                self.path.display()
-            );
-        })?;
-        let n = doc.get_n_pages();
         let mut content = String::new();
-        for i in 0..n {
-            if let Some(page) = doc.get_page(i) {
-                if let Some(text) = page.get_text() {
-                    content.push_str(text);
-                    content.push('\n');
+        if let Ok(doc) =  Document::open(&self.path.to_string_lossy()) {
+            if let Ok(pages) = doc.into_iter().collect::<Result<Vec<Page>, _>>() {
+                for i in pages {
+                    if let Ok(page_content) = i.to_text() {
+                        content.push_str(&page_content);
+                    }
                 }
             }
+        } else {
+            return Err(());
         }
         Ok(content)
     }
-
 }
 
 impl IntoText for PDF {
