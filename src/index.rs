@@ -1,11 +1,12 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::io::{BufReader, Read};
+use std::path::PathBuf;
 use std::{fs, io};
 
-trait Lexer: Iterator {
-    type Token;
-    fn next_token(&mut self) -> Option<Self::Token>;
+pub trait IntoText {
+    fn into_text(&mut self) -> Option<String>;
+    fn get_path(&self) -> PathBuf;
 }
 
 type Token = String;
@@ -16,6 +17,27 @@ pub struct Tokenizer {
     pub content: Vec<u8>,
     cursor: usize,
     current: Option<u8>,
+}
+
+#[derive(Debug)]
+pub struct TextFile {
+    pub path: PathBuf,
+}
+
+impl IntoText for TextFile {
+    fn into_text(&mut self) -> Option<String> {
+        if let Ok(f) = fs::File::open(self.get_path()) {
+            let mut buf = BufReader::new(f);
+            let mut content = String::new();
+            let _ = buf.read_to_string(&mut content);
+            return Some(content);
+        }
+        None
+    }
+
+    fn get_path(&self) -> PathBuf {
+        self.path.clone()
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -43,10 +65,13 @@ impl DirIndex {
             }
         }
 
-        let df = document_token_freq.into_iter().map(|(k, v)| {
-            let score = n as f32 / (1 + v) as f32;
-            (k.clone(), score.log10() + 1f32)
-        }).collect();
+        let df = document_token_freq
+            .into_iter()
+            .map(|(k, v)| {
+                let score = n as f32 / (1 + v) as f32;
+                (k.clone(), score.log10() + 1f32)
+            })
+            .collect();
 
         Self {
             dirname,
@@ -77,6 +102,24 @@ impl Tokenizer {
             current,
             cursor: 0,
         })
+    }
+
+    pub fn file<Text>(content: &mut Text) -> Result<Tokenizer, ()>
+    where
+        Text: IntoText + Sized,
+    {
+        if let Some(text) = content.into_text() {
+            let file_contents = text.into_bytes();
+            let current = file_contents.get(0).and_then(|s| Some(*s));
+            Ok(Tokenizer {
+                name: content.get_path().to_string_lossy().to_string(),
+                content: file_contents,
+                cursor: 0,
+                current,
+            })
+        } else {
+            Err(())
+        }
     }
 
     pub fn peek(&self, ahead: Option<usize>) -> Option<u8> {

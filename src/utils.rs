@@ -1,8 +1,8 @@
-use crate::index::{DirIndex, DocumentIndex, Tokenizer};
+use crate::{index::{DirIndex, DocumentIndex, Tokenizer}, pdf::PDF};
 use std::{
     collections::HashMap,
     fs,
-    io::{self, BufReader, BufWriter},
+    io::{self, BufReader, BufWriter, ErrorKind, Error},
     path::{Path, PathBuf},
 };
 
@@ -43,26 +43,37 @@ pub fn load_index(index_location: &str) -> Option<DirIndex> {
     }
 }
 
-pub fn index_file(filename: &str) -> io::Result<DocumentIndex> {
+pub fn index_file(filename: PathBuf) -> io::Result<DocumentIndex> {
     let mut tf = HashMap::new();
     let mut index = HashMap::new();
-    let lexer = Tokenizer::new(filename)?;
-    let tokens: Vec<String> = lexer.into_iter().collect();
-    let n = tokens.len();
-
-    for token in tokens {
-        index.entry(token).and_modify(|c| *c += 1).or_insert(1);
+    let lexer;
+    let path = filename.clone();
+    if filename.ends_with(".pdf") {
+        let mut pdf = PDF {path: filename};
+        lexer = Tokenizer::file(&mut pdf).ok();
+    } else {
+        lexer = Tokenizer::new(filename.to_str().expect("Should not panic!")).ok();
     }
+    if let Some(lexer) = lexer {
+        let tokens: Vec<String> = lexer.into_iter().collect();
+        let n = tokens.len();
 
-    for (token, count) in &index {
-        tf.insert(token.clone(), (*count as f32) / (n as f32));
+        for token in tokens {
+            index.entry(token).and_modify(|c| *c += 1).or_insert(1);
+        }
+
+        for (token, count) in &index {
+            tf.insert(token.clone(), (*count as f32) / (n as f32));
+        }
+
+        Ok(DocumentIndex {
+            filename: String::from(path.to_string_lossy()),
+            tf,
+            index,
+        })
+    } else {
+        Err(Error::from(ErrorKind::InvalidInput))
     }
-
-    Ok(DocumentIndex {
-        filename: String::from(filename),
-        tf,
-        index,
-    })
 }
 
 pub fn index_dir(dir_name: &str) -> io::Result<DirIndex> {
@@ -71,7 +82,7 @@ pub fn index_dir(dir_name: &str) -> io::Result<DirIndex> {
     if dir.exists() && dir.is_dir() {
         let paths = get_all_file_paths(dir)?;
         for i in paths {
-            let file_index = index_file(i.to_str().unwrap_or(""));
+            let file_index = index_file(i);
             if let Ok(file_index) = file_index {
                 indices.push(file_index);
             }
