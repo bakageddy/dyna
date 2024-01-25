@@ -1,36 +1,38 @@
-use std::path::PathBuf;
-use crate::index::IntoText;
-
+use std::path::Path;
 use mupdf::{document::Document, page::Page};
 
-pub struct PDF {
-    pub path: PathBuf,
+use crate::lexer::IntoText;
+
+pub struct PdfFile<P> {
+    pub filename: P, 
 }
 
-impl PDF {
-    pub fn get_all_text(&self) -> Result<String, ()> {
+impl<P: AsRef<Path>> PdfFile<P> {
+    pub fn new(filename: P) -> Self {
+        Self { filename }
+    }
+}
+
+impl<P: AsRef<Path>> IntoText for PdfFile<P> {
+    fn into_text(&mut self) -> Option<String> {
         let mut content = String::new();
-        if let Ok(doc) =  Document::open(&self.path.to_string_lossy()) {
+        if let Ok(doc) =  Document::open(self.get_path()) {
             if let Ok(pages) = doc.into_iter().collect::<Result<Vec<Page>, _>>() {
                 for i in pages {
                     if let Ok(page_content) = i.to_text() {
                         content.push_str(&page_content);
                     }
                 }
+                Some(content)
+            } else {
+                None
             }
         } else {
-            return Err(());
+            None
         }
-        Ok(content)
-    }
-}
-
-impl IntoText for PDF {
-    fn into_text(&mut self) -> Option<String> {
-        self.get_all_text().ok()
     }
 
-    fn get_path(&self) -> PathBuf {
-        self.path.clone()
+    fn get_path(&self) -> &str {
+        self.filename.as_ref().to_str().unwrap()
     }
 }

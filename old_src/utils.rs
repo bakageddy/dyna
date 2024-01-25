@@ -54,10 +54,10 @@ pub fn index_file(filename: PathBuf) -> io::Result<DocumentIndex> {
 
     if filename.extension().unwrap_or("".as_ref()).eq("pdf") {
         let mut pdf = PDF { path: filename };
-        lexer = Tokenizer::file(&mut pdf).ok();
+        lexer = Tokenizer::from(&mut pdf).ok();
     } else if filename.extension().unwrap_or("".as_ref()).eq("txt"){
         let mut txt = TextFile { path: filename };
-        lexer = Tokenizer::file(&mut txt).ok();
+        lexer = Tokenizer::from(&mut txt).ok();
     } else {
         return Err(Error::from(ErrorKind::InvalidInput));
     }
