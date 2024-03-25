@@ -1,12 +1,16 @@
-use core::f64;
-use std::{collections::HashMap, fs, path::{PathBuf, Path}, io::{self, BufWriter, ErrorKind}, fmt::write};
+use std::{
+    collections::HashMap,
+    fs,
+    io::{self, BufWriter, ErrorKind},
+    path::{Path, PathBuf},
+};
 
-use mupdf::Error;
 use serde::{Deserialize, Serialize};
 
 use crate::{
     lexer::{IntoText, Lexer},
-    text::TextFile, pdf::PdfFile,
+    pdf::PdfFile,
+    text::TextFile,
 };
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -105,12 +109,15 @@ impl<'a> DirIndex<'a> {
     where
         P: AsRef<Path>,
     {
-        let f = fs::File::open(path)?;
+        let f = fs::File::create(path)?;
         let writer = BufWriter::new(f);
         if let Ok(_) = serde_json::to_writer(writer, self) {
             Ok(())
         } else {
-            Err(std::io::Error::new(ErrorKind::WriteZero, "Failed to write to index"))
+            Err(std::io::Error::new(
+                ErrorKind::WriteZero,
+                "Failed to write to index",
+            ))
         }
     }
 

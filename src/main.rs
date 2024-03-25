@@ -2,8 +2,9 @@ mod index;
 mod lexer;
 mod text;
 mod pdf;
+mod server;
 
-use std::{fs, io::{BufReader, Read}};
+use std::{fs, io::{BufReader, Read}, process::exit};
 
 use anyhow;
 use index::DirIndex;
@@ -26,10 +27,10 @@ fn main() -> anyhow::Result<()> {
     let args = Args::parse();
     if let (Some(save_loc), Some(dir)) = (&args.index, args.dir) {
         if let Some(index) = DirIndex::new(&dir) {
-            if let Ok(_) = index.save_to_file(&save_loc) {
-                println!("Saved to location: {save_loc}");
+            if let Err(e) = index.save_to_file(&save_loc) {
+                println!("Failed to save index to location: {e}");
             } else {
-                println!("Failed to save index to location: {save_loc}");
+                println!("Saved to location: {save_loc}");
             }
         } else {
             println!("Failed to index directory: {dir}");
@@ -50,6 +51,10 @@ fn main() -> anyhow::Result<()> {
         }
     } else {
         println!("Consider using --help");
+        exit(0);
     }
+
+    server::handle_requests(8080)?;
+
     Ok(())
 }
