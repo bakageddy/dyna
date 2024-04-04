@@ -36,7 +36,7 @@ h1 {
 						console.log(res);
 						result_node.innerText = res;
 					})
-					.err(e => {result_node.innerText = e})
+					.catch(e => {result_node.innerText = e})
 			}
 		</script>
 	</head>
