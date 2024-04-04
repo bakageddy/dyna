@@ -1,0 +1,56 @@
+<html>
+	<head>
+		<title>
+			Dyna Search Engine
+		</title>
+		<style>
+h1 {
+	text-align: center;
+	justify-content: center;
+}
+
+.container {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+		</style>
+		<script>
+			function query_send() {
+				let url = "http://localhost:8080";
+				let dom_node = document.getElementById("searchbar");
+				let result_node = document.getElementById("results")
+				let query = dom_node.value;
+
+				let formatted_url = new URL(url);
+				formatted_url.searchParams.set("query", query);
+
+				fetch(formatted_url.toString(), {
+					mode: 'cors',
+					headers: {
+						'Access-Control-Allow-Origin': '*'
+					}
+				})
+					.then(res => res.text())
+					.then(res => {
+						console.log(res);
+						result_node.innerText = res;
+					})
+					.err(e => {result_node.innerText = e})
+			}
+		</script>
+	</head>
+	<body>
+		<h1>
+			Dyna
+		</h1>
+
+		<div class="container">
+			<input id="searchbar" type="text"/>
+			<button onclick="query_send()"></button>
+		</div>
+
+		<div id="results">
+		</div>
+	</body>
+</html>

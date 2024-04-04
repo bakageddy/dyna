@@ -21,6 +21,9 @@ pub struct Args {
 
     #[arg(long)]
     pub search: Option<String>,
+
+    #[arg(long)]
+    pub serve: Option<bool>,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -49,12 +52,24 @@ fn main() -> anyhow::Result<()> {
         } else {
             println!("Failed to open file: {index_location}");
         }
+    } else if let (Some(true), Some(idx_location)) = (args.serve, &args.index)  {
+        if let Ok(handle) = fs::File::open(&idx_location) {
+            let mut content = String::new();
+            let mut rdr = BufReader::new(handle);
+            let _ = rdr.read_to_string(&mut content);
+            if let Ok(dir_index) = serde_json::from_str::<DirIndex>(&content) {
+                server::handle_requests(8080, &dir_index)?;
+            } else {
+                println!("Failed to load data from {idx_location}");
+            }
+        } else {
+            println!("Failed to open file: {idx_location}");
+        }
+
     } else {
         println!("Consider using --help");
         exit(0);
     }
-
-    server::handle_requests(8080)?;
 
     Ok(())
 }
