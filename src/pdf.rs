@@ -23,7 +23,7 @@ impl<P: AsRef<Path>> IntoText for PdfFile<P> {
                         content.push_str(&page_content);
                     }
                 }
-                Some(content)
+                Some(content.to_lowercase())
             } else {
                 None
             }

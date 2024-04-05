@@ -20,7 +20,7 @@ impl IntoText for TextFile {
             let mut buf = BufReader::new(handle);
             let mut content = String::new();
             if let Ok(_) = buf.read_to_string(&mut content) {
-                Some(content)
+                Some(content.to_lowercase())
             } else {
                 None
             }

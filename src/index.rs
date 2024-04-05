@@ -60,22 +60,21 @@ impl<'a> DirIndex<'a> {
                 if let Some(etx) = i.extension() {
                     let index: FileIndex;
 
-                    if etx.eq("txt") || etx.eq("text") {
-                        let mut file = TextFile::new(&i.display().to_string());
-                        if let Some(idx) = FileIndex::new(&mut file) {
-                            index = idx;
-                        } else {
-                            continue;
-                        }
-                    } else if etx.eq("pdf") {
+                    if (etx.eq("pdf")) {
                         let mut file = PdfFile::new(&i);
                         if let Some(idx) = FileIndex::new(&mut file) {
                             index = idx;
                         } else {
                             continue;
                         }
+
                     } else {
-                        continue;
+                        let mut file = TextFile::new(&i.display().to_string());
+                        if let Some(idx) = FileIndex::new(&mut file) {
+                            index = idx;
+                        } else {
+                            continue;
+                        }
                     }
 
                     for (token, tf) in &index.index {
@@ -111,7 +110,7 @@ impl<'a> DirIndex<'a> {
     {
         let f = fs::File::create(path)?;
         let writer = BufWriter::new(f);
-        if let Ok(_) = serde_json::to_writer(writer, self) {
+        if let Ok(_) = serde_json::to_writer_pretty(writer, self) {
             Ok(())
         } else {
             Err(std::io::Error::new(
@@ -124,7 +123,7 @@ impl<'a> DirIndex<'a> {
     pub fn search_term(&self, term: &str) -> HashMap<String, f64> {
         let mut scores = HashMap::new();
         for index in &self.files {
-            for word in term.split_whitespace() {
+            for word in term.to_lowercase().split_whitespace() {
                 if let Some(tf) = index.get_tf(word) {
                     if let Some(idf) = self.df.get(word) {
                         let score = (*idf) * (tf as f64);

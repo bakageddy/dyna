@@ -28,21 +28,31 @@ h1 {
 				fetch(formatted_url.toString(), {
 					mode: 'cors',
 					headers: {
-						'Access-Control-Allow-Origin': '*'
+						'Access-Control-Allow-Origin': '*',
+						'Access-Control-Allow-Headers': '*',
 					}
 				})
 					.then(res => res.text())
 					.then(res => {
-						console.log(res);
-						result_node.innerText = res;
+						let res_obj = JSON.parse(res);
+						console.log(res_obj);
+
+						let output_html = "";
+						for (const [key, val] of Object.entries(res_obj)) {
+							console.log(key);
+							let anchor_tags = `<a href=\"file://${key}\">${key}</a><br>`;
+							output_html = output_html.concat(anchor_tags);
+						}
+						console.log(output_html);
+						result_node.innerHTML = output_html;
 					})
-					.catch(e => {result_node.innerText = e})
+					.catch(e => {result_node.innerText = e});
 			}
 		</script>
 	</head>
 	<body>
 		<h1>
-			Dyna
+			Dyna - Local Search Engine
 		</h1>
 
 		<div class="container">
