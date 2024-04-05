@@ -8,9 +8,7 @@ use std::{
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    lexer::{IntoText, Lexer},
-    pdf::PdfFile,
-    text::TextFile,
+    lexer::{IntoText, Lexer}, pdf::PdfFile, stemmer::{self, stem}, text::TextFile
 };
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -26,7 +24,8 @@ impl FileIndex {
             let contents = contents.chars().collect::<Vec<_>>();
             for i in Lexer::new(&contents) {
                 let key = i.iter().collect();
-                index.entry(key).and_modify(|v| *v += 1).or_insert(1);
+                let stemmed_word = stemmer::stem(key);
+                index.entry(stemmed_word).and_modify(|v| *v += 1).or_insert(1);
             }
             Some(Self {
                 name: file.get_path().to_string(),
@@ -124,8 +123,9 @@ impl<'a> DirIndex<'a> {
         let mut scores = HashMap::new();
         for index in &self.files {
             for word in term.to_lowercase().split_whitespace() {
-                if let Some(tf) = index.get_tf(word) {
-                    if let Some(idf) = self.df.get(word) {
+                let word = stemmer::stem(word.to_owned());
+                if let Some(tf) = index.get_tf(&word) {
+                    if let Some(idf) = self.df.get(&word) {
                         let score = (*idf) * (tf as f64);
                         scores
                             .entry(index.name.clone())

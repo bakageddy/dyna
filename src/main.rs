@@ -2,6 +2,7 @@ mod index;
 mod lexer;
 mod text;
 mod pdf;
+mod stemmer;
 mod server;
 
 use std::{fs, io::{BufReader, Read}, process::exit};
