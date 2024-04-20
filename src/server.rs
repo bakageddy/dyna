@@ -46,10 +46,10 @@ pub fn handle_requests(port: u32, dir_idx: &DirIndex) -> anyhow::Result<()> {
 
                 let cors_header =
                     tiny_http::Header::from_bytes(&b"Access-Control-Allow-Origin"[..], &b"*"[..])
-                        .expect("Fuck this!");
+                        .expect("Could not construct header");
                 let cors_another_header =
                     tiny_http::Header::from_bytes(&b"Access-Control-Allow-Headers"[..], &b"*"[..])
-                        .expect("Another fuck you!");
+                        .expect("Could not construct header");
                 request
                     .respond(
                         response

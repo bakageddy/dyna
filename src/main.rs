@@ -2,6 +2,7 @@ mod index;
 mod lexer;
 mod text;
 mod pdf;
+mod docx;
 mod stemmer;
 mod server;
 
