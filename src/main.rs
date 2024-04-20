@@ -1,6 +1,7 @@
 mod index;
 mod lexer;
 mod text;
+mod epub;
 mod pdf;
 mod docx;
 mod stemmer;

@@ -3,17 +3,17 @@ use mupdf::{document::Document, page::Page};
 
 use crate::lexer::IntoText;
 
-pub struct PdfFile<P> {
+pub struct BookFile<P> {
     pub filename: P, 
 }
 
-impl<P: AsRef<Path>> PdfFile<P> {
+impl<P: AsRef<Path>> BookFile<P> {
     pub fn new(filename: P) -> Self {
         Self { filename }
     }
 }
 
-impl<P: AsRef<Path>> IntoText for PdfFile<P> {
+impl<P: AsRef<Path>> IntoText for BookFile<P> {
     fn into_text(&mut self) -> Option<String> {
         let mut content = String::new();
         if let Ok(doc) =  Document::open(self.get_path()) {

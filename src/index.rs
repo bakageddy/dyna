@@ -8,7 +8,7 @@ use std::{
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    lexer::{IntoText, Lexer}, pdf::PdfFile, stemmer::{self}, text::TextFile, docx::DocxFile
+    lexer::{IntoText, Lexer}, pdf::BookFile, stemmer::{self}, text::TextFile, docx::DocxFile
 };
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -59,15 +59,14 @@ impl<'a> DirIndex<'a> {
                 if let Some(etx) = i.extension() {
                     let index: FileIndex;
 
-                    if (etx.eq("pdf")) {
-                        let mut file = PdfFile::new(&i);
+                    if etx.eq("pdf") || etx.eq("epub") {
+                        let mut file = BookFile::new(&i);
                         if let Some(idx) = FileIndex::new(&mut file) {
                             index = idx;
                         } else {
                             continue;
                         }
-
-                    } else if (etx.eq("docx")) {
+                    } else if etx.eq("docx") {
                         let mut file = DocxFile::new(&i);
                         if let Some(idx) = FileIndex::new(&mut file) {
                             index = idx;
