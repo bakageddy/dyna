@@ -10,7 +10,9 @@ pub struct TextFile {
 
 impl TextFile {
     pub fn new(filename: &str) -> Self {
-        Self { filename: filename.to_string() }
+        Self {
+            filename: filename.to_string(),
+        }
     }
 }
 

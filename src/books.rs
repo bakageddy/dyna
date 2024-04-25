@@ -1,10 +1,10 @@
-use std::path::Path;
 use mupdf::{document::Document, page::Page};
+use std::path::Path;
 
 use crate::lexer::IntoText;
 
 pub struct BookFile<P> {
-    pub filename: P, 
+    pub filename: P,
 }
 
 impl<P: AsRef<Path>> BookFile<P> {
@@ -16,7 +16,7 @@ impl<P: AsRef<Path>> BookFile<P> {
 impl<P: AsRef<Path>> IntoText for BookFile<P> {
     fn into_text(&mut self) -> Option<String> {
         let mut content = String::new();
-        if let Ok(doc) =  Document::open(self.get_path()) {
+        if let Ok(doc) = Document::open(self.get_path()) {
             if let Ok(pages) = doc.into_iter().collect::<Result<Vec<Page>, _>>() {
                 for i in pages {
                     if let Ok(page_content) = i.to_text() {

@@ -7,12 +7,32 @@
 h1 {
 	text-align: center;
 	justify-content: center;
+	font-size: 4rem;
+	/* color: #ebdbb2; */
+}
+
+/* body { */
+/* 	background-color: #1d2021; */
+/* } */
+
+input {
+	font-size: 2rem;
+}
+
+button {
+	font-size: 2rem;
+	font-family: monospace;
 }
 
 .container {
 	display: flex;
 	justify-content: center;
 	align-items: center;
+	font-size: 1rem;
+}
+
+a {
+	text-align: center;
 }
 		</style>
 		<script>
@@ -39,7 +59,6 @@ h1 {
 
 						let output_html = "";
 						for (const [key, val] of Object.entries(res_obj)) {
-							console.log(key);
 							let anchor_tags = `<a href=\"file://${key}\">${key}</a><br>`;
 							output_html = output_html.concat(anchor_tags);
 						}
@@ -52,12 +71,12 @@ h1 {
 	</head>
 	<body>
 		<h1>
-			Dyna - Local Search Engine
+			Dyna
 		</h1>
 
 		<div class="container">
 			<input id="searchbar" type="text"/>
-			<button onclick="query_send()"></button>
+			<button onclick="query_send()">Search</button>
 		</div>
 
 		<div id="results">

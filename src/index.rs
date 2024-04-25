@@ -8,7 +8,11 @@ use std::{
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    lexer::{IntoText, Lexer}, pdf::BookFile, stemmer::{self}, text::TextFile, docx::DocxFile
+    books::BookFile,
+    docx::DocxFile,
+    lexer::{IntoText, Lexer},
+    stemmer::{self},
+    text::TextFile,
 };
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -25,7 +29,10 @@ impl FileIndex {
             for i in Lexer::new(&contents) {
                 let key = i.iter().collect();
                 let stemmed_word = stemmer::stem(key);
-                index.entry(stemmed_word).and_modify(|v| *v += 1).or_insert(1);
+                index
+                    .entry(stemmed_word)
+                    .and_modify(|v| *v += 1)
+                    .or_insert(1);
             }
             Some(Self {
                 name: file.get_path().to_string(),
@@ -73,7 +80,6 @@ impl<'a> DirIndex<'a> {
                         } else {
                             continue;
                         }
-
                     } else {
                         let mut file = TextFile::new(&i.display().to_string());
                         if let Some(idx) = FileIndex::new(&mut file) {

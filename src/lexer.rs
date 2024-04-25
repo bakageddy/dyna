@@ -43,16 +43,16 @@ impl<'a> Lexer<'a> {
         }
         if self.content[0].is_numeric() {
             let token = self.cut_at(|s| {
-                s.is_numeric() 
-                    // && !s.is_ascii_punctuation() && !s.is_ascii_whitespace()
+                s.is_numeric()
+                // && !s.is_ascii_punctuation() && !s.is_ascii_whitespace()
             });
             return token;
         }
 
         if self.content[0].is_alphanumeric() {
             let token = self.cut_at(|s| {
-                s.is_alphanumeric() 
-                    // && !s.is_ascii_punctuation() && !s.is_ascii_whitespace()
+                s.is_alphanumeric()
+                // && !s.is_ascii_punctuation() && !s.is_ascii_whitespace()
             });
             return token;
         }
